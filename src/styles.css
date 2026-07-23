@@ -107,3 +107,106 @@ button:disabled { opacity: .45; cursor: not-allowed; }
   #topbar { padding: 18px; }
   #hint { left: 16px; bottom: 16px; }
 }
+
+.enemy-summary {
+  display: flex;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.enemy-summary span {
+  padding: 6px 9px;
+  border-radius: 999px;
+  color: #e8d8c7;
+  background: rgba(219, 135, 72, .12);
+  border: 1px solid rgba(219, 135, 72, .22);
+  font-size: 11px;
+}
+
+.battle-warning {
+  margin: 10px 0;
+  padding: 9px 10px;
+  border-radius: 9px;
+  color: #f2c6a6;
+  background: rgba(183, 89, 76, .12);
+  border: 1px solid rgba(183, 89, 76, .22);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.battle-grid {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.tactic-card {
+  display: grid;
+  gap: 5px;
+  width: 100%;
+  text-align: left;
+  border: 1px solid rgba(126, 170, 170, .18);
+  background: rgba(255, 255, 255, .035);
+}
+
+.tactic-card strong { font-size: 13px; }
+.tactic-card span { color: #9eb0ae; font-size: 11px; line-height: 1.45; }
+.tactic-card em { font-style: normal; font-size: 11px; font-weight: 800; }
+.tactic-card.is-win em { color: #75d4b2; }
+.tactic-card.is-loss em { color: #e48f7e; }
+.tactic-card:hover { border-color: rgba(116, 213, 208, .46); background: rgba(116, 213, 208, .08); }
+
+.battle-bars {
+  display: grid;
+  gap: 12px;
+  margin: 14px 0;
+}
+
+.battle-bars > div {
+  display: grid;
+  grid-template-columns: 70px 1fr auto;
+  align-items: center;
+  gap: 8px;
+  color: #aabbb8;
+  font-size: 11px;
+}
+
+.bar {
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .07);
+}
+
+.bar i {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background: #6fd1b0;
+  transition: width .14s ease;
+}
+
+.bar.enemy i { background: #d87967; }
+
+.battle-timeline {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.battle-timeline li {
+  padding: 8px 9px;
+  border-radius: 8px;
+  color: #9fb0ad;
+  background: rgba(255, 255, 255, .035);
+  font-size: 11px;
+  animation: battle-line-in .16s ease-out;
+}
+
+@keyframes battle-line-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}

@@ -11,6 +11,7 @@ const TILE_COLORS = Object.freeze({
   item: 0x4e8ed0,
   checkpoint: 0x8e6bc5,
   echo: 0x4dd2ef,
+  door: 0x788892,
   exit: 0xd4bc62
 });
 
@@ -33,6 +34,7 @@ export class T3DTrainRenderer {
     this.tiles = new Map();
     this.entities = new Map();
     this.hovered = null;
+    this.pathKeys = new Set();
     this.playerMesh = null;
     this.running = true;
 
@@ -105,6 +107,8 @@ export class T3DTrainRenderer {
       mesh = new t3d.Mesh(new t3d.CylinderGeometry(0.3, 0.42, 0.22, 16), material(TILE_COLORS.checkpoint));
     } else if (kind === 'echo') {
       mesh = new t3d.Mesh(new t3d.SphereGeometry(0.3, 12, 8), material(TILE_COLORS.echo));
+    } else if (kind === 'door') {
+      mesh = new t3d.Mesh(new t3d.BoxGeometry(0.88, 1.08, 0.16), material(TILE_COLORS.door));
     } else if (kind === 'exit') {
       mesh = new t3d.Mesh(new t3d.BoxGeometry(0.78, 1.05, 0.2), material(TILE_COLORS.exit));
     }
@@ -112,6 +116,7 @@ export class T3DTrainRenderer {
     if (!mesh) return null;
     mesh.position.set(x, kind === 'checkpoint' ? 0.24 : 0.5, y);
     mesh.__entityKind = kind;
+    mesh.__baseY = mesh.position.y;
     this.scene.add(mesh);
     return mesh;
   }
@@ -146,13 +151,11 @@ export class T3DTrainRenderer {
 
     this.playerMesh.position.x = data.run.player.x;
     this.playerMesh.position.z = data.run.player.y;
-
-    const checkpointTile = this.tiles.get(data.checkpoint ?? '');
-    if (checkpointTile) checkpointTile.material.diffuse.setHex(0x46355f);
+    this.refreshAllTileColors();
 
     if (reason === 'death') {
       this.playerMesh.scale.set(1.35, 0.35, 1.35);
-      setTimeout(() => this.playerMesh.scale.set(1, 1, 1), 240);
+      setTimeout(() => this.playerMesh.scale.set(1, 1, 1), 260);
     }
   }
 
@@ -160,6 +163,14 @@ export class T3DTrainRenderer {
     this.canvas.addEventListener('pointermove', (event) => this.handlePointer(event, false));
     this.canvas.addEventListener('pointerleave', () => this.setHovered(null));
     this.canvas.addEventListener('click', (event) => this.handlePointer(event, true));
+    this.canvas.addEventListener('webglcontextlost', (event) => {
+      event.preventDefault();
+      this.running = false;
+      console.warn('WebGL context lost. Game state remains saved.');
+    });
+    this.canvas.addEventListener('webglcontextrestored', () => {
+      window.location.reload();
+    });
     window.addEventListener('resize', () => this.resize());
   }
 
@@ -174,20 +185,44 @@ export class T3DTrainRenderer {
     if (activate && tileHit) this.onTileClick(tileHit.x, tileHit.y);
   }
 
+  showPath(path) {
+    this.pathKeys = new Set(path.map((step) => keyOf(step.x, step.y)));
+    this.refreshAllTileColors();
+  }
+
+  clearPath() {
+    if (!this.pathKeys.size) return;
+    this.pathKeys.clear();
+    this.refreshAllTileColors();
+  }
+
   setHovered(key) {
     if (this.hovered === key) return;
-    if (this.hovered) {
-      const previous = this.tiles.get(this.hovered);
-      if (previous) {
-        const isCheckpoint = this.state.data.checkpoint === this.hovered;
-        previous.material.diffuse.setHex(isCheckpoint ? 0x46355f : previous.__tile.baseColor);
-      }
-    }
+    const previous = this.hovered;
     this.hovered = key;
-    if (key) {
-      const current = this.tiles.get(key);
-      if (current) current.material.diffuse.setHex(0x386b78);
-    }
+    if (previous) this.refreshTileColor(previous);
+    if (key) this.refreshTileColor(key);
+  }
+
+  refreshAllTileColors() {
+    for (const key of this.tiles.keys()) this.refreshTileColor(key);
+  }
+
+  refreshTileColor(key) {
+    const tile = this.tiles.get(key);
+    if (!tile) return;
+    let color = tile.__tile.baseColor;
+    if (this.state.data.checkpoint === key) color = 0x46355f;
+    if (this.pathKeys.has(key)) color = 0x294f59;
+    if (this.hovered === key) color = 0x386b78;
+    tile.material.diffuse.setHex(color);
+  }
+
+  animateBattleStep(enemyKey, step) {
+    const mesh = step.actor === 'player' ? this.entities.get(enemyKey) : this.playerMesh;
+    if (!mesh) return;
+    mesh.scale.set(1.28, 0.72, 1.28);
+    setTimeout(() => mesh.scale.set(1, 1, 1), 130);
   }
 
   resize() {
@@ -207,14 +242,18 @@ export class T3DTrainRenderer {
     if (!this.running) return;
     requestAnimationFrame((next) => this.loop(next));
 
-    const echo = [...this.entities.values()].find((entity) => entity.__entityKind === 'echo');
-    if (echo) {
-      echo.position.y = 0.52 + Math.sin(time * 0.004) * 0.12;
-      echo.euler.y = time * 0.0015;
+    for (const entity of this.entities.values()) {
+      if (entity.__entityKind === 'echo') {
+        entity.position.y = entity.__baseY + Math.sin(time * 0.004) * 0.12;
+        entity.euler.y = time * 0.0015;
+      } else if (entity.__entityKind === 'checkpoint') {
+        entity.euler.y = time * 0.0008;
+      } else if (entity.__entityKind === 'item') {
+        entity.position.y = entity.__baseY + Math.sin(time * 0.003) * 0.04;
+      } else if (entity.__entityKind === 'elite') {
+        entity.euler.y = Math.sin(time * 0.001) * 0.08;
+      }
     }
-
-    const checkpoint = [...this.entities.values()].find((entity) => entity.__entityKind === 'checkpoint');
-    if (checkpoint) checkpoint.euler.y = time * 0.0008;
 
     this.forwardRenderer.render(this.scene, this.camera);
   }

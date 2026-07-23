@@ -8,6 +8,7 @@ export const TILE = Object.freeze({
   CHECKPOINT: 'C',
   ELITE: 'M',
   ECHO: 'X',
+  DOOR: 'D',
   EXIT: 'G'
 });
 
@@ -16,7 +17,7 @@ export const MAP_TEMPLATE = [
   '#S..N....E..#',
   '#.###.##.#..#',
   '#...I....#..#',
-  '###.####.#..#',
+  '###.####D#..#',
   '#...C..M....#',
   '#.#####.###.#',
   '#....E...X.G#',
@@ -31,6 +32,7 @@ export const POSITION_KEYS = Object.freeze({
   npc: '4,1',
   enemyA: '9,1',
   item: '4,3',
+  door: '8,4',
   checkpoint: '4,5',
   elite: '7,5',
   enemyB: '5,7',
