@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#071017" />
+    <title>回声列车：终点站</title>
+  </head>
+  <body>
+    <main id="app">
+      <section id="viewport-shell">
+        <canvas id="game-canvas" aria-label="回声列车游戏地图"></canvas>
+        <div id="scanlines"></div>
+        <header id="topbar">
+          <div>
+            <p class="eyebrow">ECHO TRAIN / PROTOTYPE 01</p>
+            <h1>回声列车：终点站</h1>
+          </div>
+          <div class="top-actions">
+            <button id="reset-button" class="ghost-button">清除存档</button>
+          </div>
+        </header>
+        <div id="hint">WASD / 方向键移动 · 点击地块自动寻路</div>
+      </section>
+
+      <aside id="hud">
+        <section class="panel status-panel">
+          <div class="panel-title">乘客状态</div>
+          <div id="stats"></div>
+        </section>
+
+        <section class="panel objective-panel">
+          <div class="panel-title">当前目标</div>
+          <p id="objective"></p>
+        </section>
+
+        <section class="panel action-panel">
+          <div class="panel-title">现场事件</div>
+          <div id="event-content" class="event-content"></div>
+          <div id="event-actions" class="event-actions"></div>
+        </section>
+
+        <section class="panel log-panel">
+          <div class="panel-title">列车记录</div>
+          <ol id="log"></ol>
+        </section>
+      </aside>
+    </main>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
